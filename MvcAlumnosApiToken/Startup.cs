@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MvcAlumnosApiToken.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,23 @@ namespace MvcAlumnosApiToken
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            string urlApiToken =
+                this.Configuration.GetValue<string>("ApiUrls:ApiAlumnosToken");
+            string urlTableAlumnos =
+                this.Configuration.GetValue<string>("UrlStorageTables:TableAlumnos");
+            ServiceApiToken serviceApiToken =
+                new ServiceApiToken(urlApiToken);
+            ServiceTableAlumnos serviceTableAlumnos =
+                new ServiceTableAlumnos(urlTableAlumnos);
+            services.AddTransient<ServiceApiToken>
+                (x => serviceApiToken);
+            services.AddTransient<ServiceTableAlumnos>
+                (z => serviceTableAlumnos);
+            services.AddDistributedMemoryCache();
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(10);
+            });
             services.AddControllersWithViews();
         }
 
@@ -45,7 +63,7 @@ namespace MvcAlumnosApiToken
             app.UseRouting();
 
             app.UseAuthorization();
-
+            app.UseSession();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(

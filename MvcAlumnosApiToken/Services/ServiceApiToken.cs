@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -21,7 +22,12 @@ namespace MvcAlumnosApiToken.Services
             using (WebClient client = new WebClient())
             {
                 client.Headers["content-type"] = "application/json";
-
+                Uri uri = new Uri(this.UrlApi + request);
+                string content =
+                    await client.DownloadStringTaskAsync(uri);
+                JObject data = JObject.Parse(content);
+                string token = data.GetValue("token").ToString();
+                return token;
             }
         }
     }
